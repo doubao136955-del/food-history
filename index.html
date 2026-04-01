@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>食越千年 - 五朝饮食文明沉浸式交互</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap');
+:root {
+    --tang: #d62828;
+    --song: #6b705c;
+    --yuan: #1d3557;
+    --ming: #a44a3f;
+    --qing: #cc9933;
+    --paper: #f4f1de;
+    --scroll-progress: 0%;
+}
+body {
+    font-family: 'Noto Serif SC', serif;
+    background-color: var(--paper);
+    color: #2b2d42;
+    overflow-x: hidden;
+}
+.font-cursive {
+    font-family: 'Ma Shan Zheng', cursive;
+}
+.view-content {
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.hidden-view {
+    display: none !important;
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+}
+.hero-section {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+}
+.dynasty-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 0 10vw;
+    overflow: hidden;
+}
+.dynasty-detail-section {
+    min-height: 100vh;
+    padding: 12vh 10vw 8vh;
+    position: relative;
+}
+.dynasty-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 8vh;
+}
+.dynasty-badge {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+.dynasty-full-title {
+    font-size: 5rem;
+    font-family: 'Ma Shan Zheng', cursive;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+.dynasty-features {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+    margin: 4rem 0;
+}
+.feature-card {
+    background: rgba(255,255,255,0.8);
+    border-radius: 1rem;
+    padding: 2rem;
+    width: 280px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+}
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+.all-dishes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 4rem;
+}
+.parchment {
+    background-color: #fdf6e3;
+    background-image: url('https://www.transparenttextures.com/patterns/natural-paper.png');
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+}
+.floating-deco {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.08;
+    z-index: 0;
+    user-select: none;
+}
+::-webkit-scrollbar {
+    width: 4px;
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 2px;
+}
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--tang), var(--song), var(--yuan), var(--ming), var(--qing));
+    width: var(--scroll-progress);
+    z-index: 9999;
+    transition: width 0.1s ease;
+}
+.particles-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+.particle {
+    position: absolute;
+    background: rgba(0,0,0,0.1);
+    border-radius: 50%;
+    animation: floatUp linear infinite;
+}
+@keyframes floatUp {
+    from { transform: translateY(100vh) scale(0.5); opacity: 0; }
+    20% { opacity: 0.5; }
+    80% { opacity: 0.5; }
+    to { transform: translateY(-100px) scale(1.5); opacity: 0; }
+}
+.mouse-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.7;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.nav-dots {
+    position: fixed;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+.nav-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+.nav-dot.active {
+    background-color: rgba(0,0,0,0.8);
+    transform: scale(1.5);
+}
+.nav-dot::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%) translateX(10px);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+.nav-dot:hover::after, .nav-dot.active::after {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+.card-container {
+    perspective: 1500px;
+}
+.recipe-card {
+    transform-style: preserve-3d;
+    transition: all 0.6s ease;
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23333" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>'), auto;
+}
+.recipe-card:hover {
+    transform: rotateY(15deg) rotateX(-8deg) translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+}
+#loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #fcfaf2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.loader-text {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 3rem;
+    opacity: 0;
+}
+.firework {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    z-index: 9998;
+    pointer-events: none;
+    animation: firework-animation 1s ease-out forwards;
+}
+@keyframes firework-animation {
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+}
+.back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #1c1917;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 99;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+.back-to-top:hover {
+    transform: translateY(-5px);
+    background: #333;
+}
+.search-container {
+    position: relative;
+    max-width: 400px;
+    width: 100%;
+    margin: 2rem auto 4rem;
+}
+.search-input {
+    width: 100%;
+    padding: 1rem 1.5rem 1rem 3.5rem;
+    border: none;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+.search-input:focus {
+    outline: none;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+.search-icon {
+    position: absolute;
+    left: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 1.2rem;
+}
+.tooltip {
+    position: fixed;
+    background: rgba(0,0,0,0.85);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    max-width: 200px;
+    backdrop-filter: blur(4px);
+}
+@keyframes shake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-2deg); }
+    75% { transform: rotate(2deg); }
+}
+.shake {
+    animation: shake 0.3s ease-in-out;
+}
+@keyframes unlock-bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+.unlock-success {
+    animation: unlock-bounce 0.5s ease-in-out 3;
+}
+.bg-silk {
+    background-color: var(--paper);
+    background-image: url('https://www.transparenttextures.com/patterns/natural-paper.png');
+}
+.dish-card-old, .dish-card-week {
+    transition: all 0.3s ease;
+    border: 1px solid #d4c5a1;
+    background: rgba(255,255,255,0.85);
+    border-radius: 1rem;
+    overflow: hidden;
+}
+.dish-card-old:hover, .dish-card-week:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: #8b4513;
+}
+#error-page {
+    display: none;
+    background: linear-gradient(rgba(244, 241, 234, 0.95), rgba(244, 241, 234, 0.95)), url('https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?auto=format&fit=crop&q=80&w=2000');
+    background-size: cover;
+    background-position: center;
+}
+.title-week {
+    text-align: center;
+    font-size: 3rem;
+    font-family: 'Ma Shan Zheng', cursive;
+    color: #8b0000;
+    margin: 30px 0;
+    position: relative;
+    animation: titleGlow 2s infinite alternate;
+}
+@keyframes titleGlow {
+    from { text-shadow: 0 0 10px #ffd700; }
+    to { text-shadow: 0 0 20px #ff8c00, 0 0 30px #ffd700; }
+}
+.dish-container-week {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    padding: 20px;
+}
+.dish-card-week {
+    cursor: pointer;
+    position: relative;
+    animation: cardSlide 0.8s ease backwards;
+}
+.dish-card-week:nth-child(1) { animation-delay: 0.1s; }
+.dish-card-week:nth-child(2) { animation-delay: 0.2s; }
+.dish-card-week:nth-child(3) { animation-delay: 0.3s; }
+.dish-card-week:nth-child(4) { animation-delay: 0.4s; }
+.dish-card-week:nth-child(5) { animation-delay: 0.5s; }
+.dish-card-week:nth-child(6) { animation-delay: 0.6s; }
+@keyframes cardSlide {
+    from { opacity: 0; transform: translateY(50px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.dish-img-week {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.dish-card-week:hover .dish-img-week {
+    transform: scale(1.1);
+}
+.dish-info-week {
+    padding: 15px;
+}
+.dish-name-week {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #a84200;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.dynasty-week {
+    background: #ffecd9;
+    color: #c45c00;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    animation: tagBounce 1.5s infinite;
+}
+@keyframes tagBounce {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+.dish-desc-week {
+    font-size: 0.875rem;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+.interaction-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.btn-week {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    font-family: 'Noto Serif SC', serif;
+}
+.like-btn-week {
+    background: #fff0f0;
+    color: #ff4d4f;
+}
+.like-btn-week.active {
+    background: #ff4d4f;
+    color: white;
+}
+.know-btn-week {
+    background: #f0f8ff;
+    color: #1890ff;
+}
+.btn-week:hover {
+    transform: scale(1.05);
+}
+.modal-week {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    animation: modalFade 0.3s ease;
+}
+@keyframes modalFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.modal-content-week {
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 15px;
+    padding: 25px;
+    position: relative;
+    animation: modalZoom 0.4s ease;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+}
+@keyframes modalZoom {
+    from { transform: scale(0.8); }
+    to { transform: scale(1); }
+}
+.close-modal-week {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #666;
+}
+.modal-img-week {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+.heart {
+    position: absolute;
+    color: #ff4d4f;
+    font-size: 20px;
+    pointer-events: none;
+    animation: heartFly 1s ease forwards;
+}
+@keyframes heartFly {
+    to { transform: translateY(-50px) scale(0.5); opacity: 0; }
+}
+</style>
+</head>
+<body class="bg-[#fcfaf2]">
+<div class="scroll-progress"></div>
+<div class="tooltip" id="tooltip"></div>
+<div id="loading-screen">
+    <div class="loader-text text-stone-800">食越千年</div>
+    <div class="mt-6 text-stone-500 text-sm">正在唤醒华夏味觉...</div>
+</div>
+<div class="particles-container" id="particles"></div>
+<div class="nav-dots hidden md:flex" id="side-nav">
+    <div class="nav-dot active" data-label="序章" onclick="scrollToSection('hero')"></div>
+    <div class="nav-dot" data-label="大唐" onclick="scrollToSection('tang')"></div>
+    <div class="nav-dot" data-label="大宋" onclick="scrollToSection('song')"></div>
+    <div class="nav-dot" data-label="大元" onclick="scrollToSection('yuan')"></div>
+    <div class="nav-dot" data-label="大明" onclick="scrollToSection('ming')"></div>
+    <div class="nav-dot" data-label="大清" onclick="scrollToSection('qing')"></div>
+</div>
+<nav class="fixed top-0 w-full z-[100] bg-white/40 backdrop-blur-lg border-b border-white/20 px-6 py-4 flex justify-between items-center transition-all duration-500 hover:bg-white/80">
+    <div class="flex items-center space-x-4">
+        <h1 class="text-3xl font-cursive cursor-pointer drop-shadow-md" onclick="scrollToSection('hero')">食越千年</h1>
+        <div id="breadcrumb" class="text-[10px] text-stone-600 uppercase tracking-[0.2em] hidden md:block">华夏味觉史诗 / 序章</div>
+    </div>
+    <div class="flex space-x-4 items-center">
+        <button onclick="showAchivement()" class="p-2 hover:bg-white/50 rounded-full transition relative group" title="成就图鉴 (快捷键: A)">
+            <span class="text-xl drop-shadow-md">🏆</span>
+            <span id="badge-count" class="absolute top-0 right-0 bg-red-600 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center shadow-lg">0</span>
+        </button>
+        <button onclick="openMiniGame()" class="bg-stone-900 text-white px-6 py-2 rounded-full text-xs font-bold hover:scale-105 transition-all shadow-xl hover:shadow-2xl active:scale-95" title="穿越烹饪 (快捷键: G)">
+            穿越烹饪
+        </button>
+        <button onclick="showWeekPage()" class="bg-amber-800 text-white px-6 py-2 rounded-full text-xs font-bold hover:scale-105 transition-all shadow-xl">本周名菜</button>
+        <button onclick="showOldPage()" class="bg-[#8b4513] text-white px-6 py-2 rounded-full text-xs font-bold hover:scale-105 transition-all shadow-xl">翰墨肴香</button>
+    </div>
+</nav>
+<main id="view-home" class="view-content">
+    <section class="hero-section section-marker" id="section-hero" data-nav="hero" data-bg="#fcfaf2">
+        <div class="z-10 relative">
+            <div class="absolute -top-20 -left-20 w-40 h-40 bg-red-100 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-pulse"></div>
+            <div class="absolute -bottom-20 -right-20 w-40 h-40 bg-amber-100 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-pulse" style="animation-delay: 1s;"></div>
+            <h2 class="text-[6rem] md:text-[12rem] font-cursive mb-6 opacity-0 translate-y-20 hero-title text-stone-900 drop-shadow-2xl">食越千年</h2>
+            <p class="text-stone-600 max-w-2xl mx-auto italic text-lg md:text-xl hero-subtitle opacity-0 leading-loose">
+                “五千年风霜，化作一箸烟火。”<br>
+                拨开历史的尘埃，探寻那些散落在朝代深处的绝代风味。
+                <br><small class="text-sm mt-4 block opacity-70">提示：按ESC关闭弹窗 | 按A打开图鉴 | 按G开始游戏 | 按↑返回顶部</small>
+            </p>
+        </div>
+        <div class="absolute bottom-12 animate-bounce flex flex-col items-center cursor-pointer hero-scroll-hint opacity-0" onclick="scrollToSection('tang')">
+            <span class="text-[10px] tracking-[0.3em] uppercase text-stone-500 mb-2">向下滑动</span>
+            <div class="w-px h-16 bg-gradient-to-b from-stone-400 to-transparent"></div>
+        </div>
+    </section>
+    <div id="dynasty-container"></div>
+    <section class="hero-section bg-stone-900 text-white section-marker" id="section-footer" data-bg="#1c1917">
+        <h3 class="text-5xl font-cursive mb-8">味觉的传承，从未止步</h3>
+        <p class="text-stone-400 max-width: 480px mx-auto text-sm leading-loose mb-12">
+            从长安的胡饼到随园的豆腐，每一次咀嚼都是与古人的灵魂共振。<br>
+            探索完毕？去挑战【穿越烹饪】，收藏你的专属文明食谱。
+        </p>
+        <div class="flex gap-6">
+            <button onclick="openMiniGame()" class="bg-white text-stone-900 px-8 py-3 rounded-full text-sm font-bold hover:scale-105 transition shadow-[0_0_20px_rgba(255,255,255,0.3)]">开始烹饪挑战</button>
+            <button onclick="scrollToSection('hero')" class="border border-white/30 px-8 py-3 rounded-full text-sm hover:bg-white/10 transition">回首最初</button>
+        </div>
+    </section>
+</main>
+<div id="view-dynasty" class="view-content hidden-view fixed inset-0 z-[200] overflow-y-auto">
+    <div id="dynasty-detail-container" class="w-full"></div>
+</div>
+<div id="view-dish" class="view-content hidden-view fixed inset-0 z-[200] bg-stone-900 overflow-y-auto backdrop-blur-xl">
+    <div class="max-w-6xl mx-auto py-20 px-6 md:px-12">
+        <button onclick="goBackToDynasty()" class="mb-12 text-stone-400 hover:text-white transition flex items-center group font-bold tracking-widest text-sm">
+            <span class="mr-3 group-hover:-translate-x-2 transition-transform duration-300">←</span> 返回朝代食单
+        </button>
+        <div class="search-container mb-8">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="dish-search" placeholder="搜索菜品名称或食材..." oninput="searchDishes()">
+        </div>
+        <div class="grid lg:grid-cols-2 gap-0 bg-[#fdfbf7] rounded-[3rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden">
+            <div class="p-8 md:p-12 bg-stone-100 border-r border-stone-200 flex flex-col">
+                <div class="rounded-3xl overflow-hidden shadow-2xl bg-stone-200 flex-1 relative min-h-[300px] mb-8 group">
+                    <img id="dish-img" src="" alt="菜品展示" class="w-full h-full object-cover transition duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 border-4 border-white/20 rounded-3xl pointer-events-none"></div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-inner border border-stone-100 relative">
+                    <div class="absolute -top-3 left-6 bg-red-800 text-white text-[10px] px-3 py-1 uppercase tracking-widest rounded-full shadow-md">典故寻踪</div>
+                    <p id="dish-story" class="text-stone-600 italic text-sm leading-relaxed pt-3"></p>
+                </div>
+            </div>
+            <div class="p-8 md:p-12 flex flex-col justify-center space-y-10">
+                <div>
+                    <h2 id="dish-name" class="text-6xl md:text-7xl font-cursive text-stone-900 mb-3"></h2>
+                    <div class="inline-block px-4 py-1 border-l-4 border-red-800 bg-red-50 text-red-800 font-bold tracking-widest text-xs mb-6">
+                        <span id="dish-tagline"></span>
+                    </div>
+                    <p id="dish-detail" class="text-stone-600 leading-loose text-lg"></p>
+                </div>
+                <div class="space-y-6 bg-stone-50 p-6 rounded-2xl border border-stone-100">
+                    <h4 class="font-bold text-stone-800 flex items-center text-lg">
+                        <span class="mr-2">🥢</span> 所需食材 <span class="ml-2 text-stone-400 font-normal text-[10px] uppercase">Ingredients</span>
+                    </h4>
+                    <ul id="dish-ingredients" class="grid grid-cols-2 gap-4"></ul>
+                </div>
+                <button id="btn-cook-direct" onclick="startCookingDish()" class="w-full bg-stone-900 text-white py-5 rounded-2xl font-bold tracking-[0.3em] hover:bg-red-800 transition-all shadow-xl active:scale-95 flex justify-center items-center">
+                    <span>📝 收录至图鉴档案</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="view-week" class="view-content hidden-view fixed inset-0 z-[200] bg-silk overflow-y-auto p-6">
+    <button onclick="goHome()" class="mb-8 text-stone-600 hover:text-red-800 transition flex items-center group font-bold tracking-widest text-sm">
+        <span class="mr-3 group-hover:-translate-x-2 transition-transform duration-300">←</span> 返回千年纵览
+    </button>
+    <h1 class="title-week">🍽️ 本周穿越名菜 · 一口梦回千年</h1>
+    <div class="dish-container-week">
+        <div class="dish-card-week">
+            <img src="https://img1.baidu.com/it/u=3204687392,283614250&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=750" class="dish-img-week" alt="东坡肉">
+            <div class="dish-info-week">
+                <h3 class="dish-name-week">东坡肉 <span class="dynasty-week">宋·苏轼</span></h3>
+                <p class="dish-desc-week">慢火细炖，肥而不腻，北宋文豪专属名菜，穿越千年的鲜香</p>
+                <div class="interaction-btns">
+                    <button class="btn-week like-btn-week">❤️ 想吃</button>
+                    <button class="btn-week know-btn-week">📖 了解典故</button>
+                </div>
+            </div>
+        </div>
+        <div class="dish-card-week">
+            <img src="https://img2.baidu.com/it/u=2231301239,257901030&fm=253&fmt=auto&app=120&f=JPEG?w=740&h=740" class="dish-img-week" alt="佛跳墙">
+            <div class="dish-info-week">
+                <h3 class="dish-name-week">佛跳墙 <span class="dynasty-week">清·福建</span></h3>
+                <p class="dish-desc-week">坛起荤香飘四邻，佛闻弃禅跳墙来，清代顶级御宴名菜</p>
+                <div class="interaction-btns">
+                    <button class="btn-week like-btn-week">❤️ 想吃</button>
+                    <button class="btn-week know-btn-week">📖 了解典故</button>
+                </div>
+            </div>
+        </div>
+        <div class="dish-card-week">
+            <img src="https://img0.baidu.com/it/u=3640566606,1203676517&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=666" class="dish-img-week" alt="贵妃鸡">
+            <div class="dish-info-week">
+                <h3 class="dish-name-week">贵妃鸡 <span class="dynasty-week">唐·宫廷</span></h3>
+                <p class="dish-desc-week">以贵妃醉酒为灵感，肉质鲜嫩，唐代宫廷御膳名菜</p>
+                <div class="interaction-btns">
+                    <button class="btn-week like-btn-week">❤️ 想吃</button>
+                    <button class="btn-week know-btn-week">📖 了解典故</button>
+                </div>
+            </div>
+        </div>
+        <div class="dish-card-week">
+            <img src="https://img1.baidu.com/it/u=1656643410,3132157200&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=667" class="dish-img-week" alt="叫花鸡">
+            <div class="dish-info-week">
+                <h3 class="dish-name-week">叫花鸡 <span class="dynasty-week">明·江南</span></h3>
+                <p class="dish-desc-week">黄泥包裹烤制，皮脆肉嫩，明代江南民间传奇名菜</p>
+                <div class="interaction-btns">
+                    <button class="btn-week like-btn-week">❤️ 想吃</button>
+                    <button class="btn-week know-btn-week">📖 了解典故</button>
+                </div>
+            </div>
+        </div>
+        <div class="dish-card-week">
+            <img src="https://img2.baidu.com/it/u=1120153659,3003366900&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=666" class="dish-img-week" alt="宫保鸡丁">
+            <div class="dish-info-week">
+                <h3 class="dish-name-week">宫保鸡丁 <span class="dynasty-week">清·丁宝桢</span></h3>
+                <p class="dish-desc-week">鲜辣香嫩，清代名臣创制，风靡中外的穿越爆款菜</p>
+                <div class="interaction-btns">
+                    <button class="btn-week like-btn-week">❤️ 想吃</button>
+                    <button class="btn-week know-btn-week">📖 了解典故</button>
+                </div>
+            </div>
+        </div>
+        <div class="dish-card-week">
+            <img src="https://img0.baidu.com/it/u=2795265300,221023780&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=666" class="dish-img-week" alt="松鼠鳜鱼">
+            <div class="dish-info-week">
+                <h3 class="dish-name-week">松鼠鳜鱼 <span class="dynasty-week">清·乾隆</span></h3>
+                <p class="dish-desc-week">外酥里嫩，酸甜适口，乾隆皇帝御封的江南名菜</p>
+                <div class="interaction-btns">
+                    <button class="btn-week like-btn-week">❤️ 想吃</button>
+                    <button class="btn-week know-btn-week">📖 了解典故</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-week" id="dishModal-week">
+        <div class="modal-content-week">
+            <span class="close-modal-week">&times;</span>
+            <img src="" class="modal-img-week" id="modalImg-week">
+            <h3 class="dish-name-week" id="modalName-week"></h3>
+            <p class="dish-desc-week" id="modalDesc-week"></p>
+        </div>
+    </div>
+</div>
+<div id="view-old" class="view-content hidden-view fixed inset-0 z-[200] bg-silk overflow-y-auto">
+    <nav class="fixed top-0 w-full bg-[#2c2c2c] text-[#d4c5a1] py-4 z-50 shadow-xl">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <h1 class="text-3xl font-cursive">翰墨肴香</h1>
+            <div class="space-x-8">
+                <a href="#" onclick="showHome()" class="hover:text-white transition">林间食肆</a>
+                <a href="#" onclick="trigger404()" class="hover:text-white transition">误入深林</a>
+                <a href="#" onclick="goHome()" class="hover:text-white transition">返回首页</a>
+            </div>
+        </div>
+    </nav>
+    <main id="home-page-old" class="pt-24 pb-12 container mx-auto px-4">
+        <header class="text-center mb-16">
+            <h2 class="text-5xl font-cursive mb-4 text-[#8b4513]">珍馐御膳谱</h2>
+            <p class="text-gray-600 italic">“人间烟火气，最抚凡人心”</p>
+            <div class="w-24 h-1 bg-[#8b4513] mx-auto mt-4"></div>
+        </header>
+        <section class="mb-20">
+            <h3 class="text-3xl font-cursive mb-8 border-b-2 border-[#d4c5a1] pb-2 inline-block text-[#5d4037]">壹 · 昆仑山珍</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">金齑玉脍</h4>
+                    <p class="text-sm text-gray-600">鲈鱼鲜切如雪，衬以金黄橙膏，霜刀落处，极尽清隽。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">凤髓龙肝</h4>
+                    <p class="text-sm text-gray-600">极品珍菌与八珍之首烩制，汁浓味厚，入口即化，堪称绝响。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">煨雪狮子头</h4>
+                    <p class="text-sm text-gray-600">选肥瘦相间之豚肉，微火慢炖，色泽莹润如玉，软糯清香。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">琥珀冰糖蹄</h4>
+                    <p class="text-sm text-gray-600">取前蹄文火细煨，色若晚霞琥珀，酥烂脱骨，甜而不腻。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">九转大肠</h4>
+                    <p class="text-sm text-gray-600">酸甜苦辣咸五味俱全，千锤百炼而成，口感层叠，回味无穷。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">御府佛跳墙</h4>
+                    <p class="text-sm text-gray-600">鲍参翅肚汇聚一坛，开启则荤香四溢，引得禅心动念，越墙而至。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">孔雀开屏鱼</h4>
+                    <p class="text-sm text-gray-600">清蒸武昌鱼，造型如孔雀展翅，葱丝如翠，鱼肉如银。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">麒麟献瑞虾</h4>
+                    <p class="text-sm text-gray-600">大虾与火腿、冬笋相间，蒸制而成，鲜美至极，形神兼备。</p>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h3 class="text-3xl font-cursive mb-8 border-b-2 border-[#d4c5a1] pb-2 inline-block text-[#5d4037]">贰 · 瀛洲清供</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">碧涧红褶</h4>
+                    <p class="text-sm text-gray-600">芹菜与红椒丝快火烹炒，色泽红绿相映，清脆爽口，如入林涧。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">荷塘月色</h4>
+                    <p class="text-sm text-gray-600">莲藕、菱角、芡实清烩，洁白晶莹，仿佛月下荷塘，不染纤尘。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">雪地红梅</h4>
+                    <p class="text-sm text-gray-600">蛋白铺底如雪，上点胭脂红虾仁，素雅中见尊贵。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">锦绣罗汉斋</h4>
+                    <p class="text-sm text-gray-600">香菇、云耳、腐竹等十八种山珍荟萃，素菜荤做，滋味醇厚。</p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">金玉满堂</h4>
+                    <p class="text-sm text-gray-600">甜豆与松仁、玉米共烹，色泽金黄如玉，寓意吉祥。 </p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">翠竹报春</h4>
+                    <p class="text-sm text-gray-600">鲜竹笋与青豆清炒，保留了山野间的最初鲜甜。 </p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">百合南瓜羹</h4>
+                    <p class="text-sm text-gray-600">兰州百合与老南瓜同熬成泥，甘甜润肺，色如晚霞。 </p>
+                </div>
+                <div class="dish-card-old p-6 bg-white rounded-sm">
+                    <h4 class="text-xl font-bold text-[#8b4513] mb-2">如意豆腐</h4>
+                    <p class="text-sm text-gray-600">嫩豆腐切块，佐以秘制如意酱，清淡不失风骨。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <div id="error-page" class="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 text-center">
+        <h1 class="text-9xl font-cursive text-[#8b4513] mb-4">四零四</h1>
+        <h2 class="text-4xl font-cursive text-[#5d4037] mb-8">云深不知处 · 归路已迷</h2>
+        <div class="max-w-md bg-white bg-opacity-80 p-8 rounded-lg border-2 border-[#d4c5a1] shadow-2xl">
+            <p class="text-lg mb-6 leading-relaxed text-gray-800">
+                客官请留步。此处山岚叠嶂，云雾缭绕，恐是走岔了道。<br>
+                您所寻的“锦绣乐土”，或已迁入画中，或从未存在于凡间。<br>
+                莫要惊慌，不若饮一杯浊酒，随风而返。
+            </p>
+            <button onclick="showHome()" class="px-8 py-3 bg-[#8b4513] text-white rounded-sm hover:bg-[#5d4037] transition duration-300 font-bold">
+                循迹归航 (返回首页)
+            </button>
+        </div>
+        <p class="mt-12 text-[#8b4513] italic">“众里寻他千百度，蓦然回首，那页却在灯火阑珊处。”</p>
+    </div>
+    <footer class="bg-[#2c2c2c] text-[#d4c5a1] py-8 text-center border-t-4 border-[#8b4513]">
+        <p class="font-cursive text-xl">翰墨肴香 · 庚子年制</p>
+    </footer>
+</div>
+<div id="game-overlay" class="fixed inset-0 z-[300] bg-black/80 hidden backdrop-blur-md p-4 flex items-center justify-center transition-opacity duration-300">
+    <div class="bg-white w-full max-w-5xl h-[85vh] rounded-[2rem] overflow-hidden flex flex-col md:flex-row shadow-[0_0_60px_rgba(0,0,0,0.5)] relative transform scale-95 opacity-0 transition-all duration-500" id="game-modal">
+        <button onclick="closeMiniGame()" class="absolute top-6 right-6 text-stone-400 hover:text-black bg-stone-100 w-10 h-10 rounded-full flex items-center justify-center transition z-[301] shadow-sm" title="关闭 (ESC)">✕</button>
+        <div class="w-full md:w-1/3 bg-stone-50 p-8 border-r overflow-y-auto">
+            <h3 class="text-3xl font-cursive mb-2 text-stone-800">考据食单</h3>
+            <p class="text-xs text-stone-500 mb-4 border-b pb-4">选择一道失传名菜，重现其灵魂配方。</p>
+            <div class="flex gap-2 mb-6">
+                <button id="diff-easy" onclick="setDifficulty('easy')" class="flex-1 bg-stone-800 text-white py-2 rounded-lg text-sm" title="简单模式：允许多余食材">简单</button>
+                <button id="diff-hard" onclick="setDifficulty('hard')" class="flex-1 border border-stone-300 py-2 rounded-lg text-sm" title="困难模式：必须精准匹配">困难</button>
+            </div>
+            <div id="game-challenge-list" class="space-y-3"></div>
+        </div>
+        <div class="flex-1 p-8 md:p-12 flex flex-col justify-between bg-white relative overflow-hidden">
+            <div class="absolute -right-20 -top-20 text-[15rem] opacity-5 select-none pointer-events-none">🔥</div>
+            <div class="mb-6 relative z-10">
+                <h2 id="game-task-name" class="text-4xl font-bold text-stone-800 mb-2">请先从左侧接取任务</h2>
+                <p id="game-task-dynasty" class="text-red-800 text-sm font-bold bg-red-50 inline-block px-3 py-1 rounded-md">等待挑战...</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center flex-1 z-10">
+                <div class="bg-stone-50 h-full rounded-3xl flex flex-col items-center justify-center border-2 border-dashed border-stone-300 relative shadow-inner">
+                    <div id="game-pot" class="text-8xl md:text-9xl transition-transform duration-200 mb-6 drop-shadow-xl">🍲</div>
+                    <div class="absolute bottom-6 w-full px-6 flex justify-center">
+                        <div id="game-selected-list" class="flex flex-wrap gap-2 justify-center"></div>
+                    </div>
+                </div>
+                <div class="flex flex-col h-full">
+                    <h4 class="text-sm font-bold text-stone-600 mb-4 flex items-center"><span class="mr-2">🌿</span> 寻觅食材</h4>
+                    <div id="game-ingredients" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 gap-3 overflow-y-auto pr-2 pb-4"></div>
+                </div>
+            </div>
+            <div class="flex gap-4 mt-8 z-10">
+                <button onclick="judgeCooking()" class="flex-1 bg-gradient-to-r from-red-800 to-red-900 text-white py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all active:scale-95">🔥 揭锅验菜</button>
+                <button onclick="resetCooking()" class="px-8 border-2 border-stone-200 rounded-xl hover:bg-stone-50 font-bold text-stone-600 transition" title="清空食材">清空重来</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="achievement-overlay" class="fixed inset-0 z-[300] bg-[#fcfaf2] hidden p-8 md:p-12 overflow-y-auto">
+    <button onclick="closeAchievement()" class="mb-10 text-stone-500 hover:text-black transition flex items-center font-bold tracking-widest text-sm bg-white px-6 py-2 rounded-full shadow-sm" title="关闭 (ESC)">
+        <span class="mr-2">←</span> 退出图鉴
+    </button>
+    <div class="search-container mb-8">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="achievement-search" placeholder="搜索已解锁菜品..." oninput="filterAchievements()">
+    </div>
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-6xl md:text-8xl font-cursive text-center mb-4 text-stone-800">文明食谱大观</h2>
+        <div class="flex justify-center mb-16">
+            <div class="bg-stone-900 text-white px-6 py-2 rounded-full text-sm tracking-[0.2em] shadow-lg">
+                已唤醒 <span id="achive-count-total" class="font-bold text-red-400 text-lg mx-2">0</span> / 40 道旷世美味
+            </div>
+        </div>
+        <div id="achievement-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-6"></div>
+    </div>
+</div>
+<div class="back-to-top" id="back-to-top" onclick="scrollToTop()" title="返回顶部 (↑)">↑</div>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+function saveUnlocked() {
+    localStorage.setItem('unlockedDishes', JSON.stringify([...unlockedDishes]));
+}
+function saveScrollPosition() {
+    localStorage.setItem('scrollPosition', window.scrollY);
+}
+function restoreScrollPosition() {
+    const pos = localStorage.getItem('scrollPosition');
+    if(pos) window.scrollTo(0, parseInt(pos));
+}
+function loadUnlocked() {
+    const saved = localStorage.getItem('unlockedDishes');
+    if(saved) unlockedDishes = new Set(JSON.parse(saved));
+    updateCounts();
+}
+const dynastyAudio = {
+    tang: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-chinese-bamboo-flute-note-13-1120.mp3'),
+    song: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-chinese-flute-scale-1121.mp3'),
+    yuan: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-chinese-horn-fanfare-1118.mp3'),
+    ming: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-chinese-gong-and-bamboo-1117.mp3'),
+    qing: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-chinese-bamboo-flute-1119.mp3')
+};
+let currentAudio = null;
+function playDynastyMusic(id) {
+    if(currentAudio) currentAudio.pause();
+    if(dynastyAudio[id]) {
+        currentAudio = dynastyAudio[id];
+        currentAudio.volume = 0.3;
+        currentAudio.loop = true;
+        currentAudio.play().catch(()=>{});
+    }
+}
+function createFireworks() {
+    for(let i=0;i<30;i++) {
+        const f = document.createElement('div');
+        f.className = 'firework';
+        f.style.left = Math.random()*100+'vw';
+        f.style.top = Math.random()*100+'vh';
+        f.style.background = ['#d62828','#6b705c','#1d3557','#a44a3f','#cc9933'][Math.floor(Math.random()*5)];
+        document.body.appendChild(f);
+        setTimeout(()=>f.remove(),1000);
+    }
+}
+let gameDifficulty = 'easy';
+function setDifficulty(d) {
+    gameDifficulty = d;
+    document.getElementById('diff-easy').classList.toggle('bg-stone-800',d==='easy');
+    document.getElementById('diff-easy').classList.toggle('text-white',d==='easy');
+    document.getElementById('diff-hard').classList.toggle('bg-stone-800',d==='hard');
+    document.getElementById('diff-hard').classList.toggle('text-white',d==='hard');
+    showTooltip(document.getElementById(d === 'easy' ? 'diff-easy' : 'diff-hard'), d === 'easy' ? '简单模式：允许多余食材' : '困难模式：必须精准匹配', 2000);
+}
+const DB = {
+    tang: {
+        name: "大唐",
+        color: "#d62828",
+        bg: "#fdf4f4",
+        icon: "🏮",
+        features: [
+            { icon: "🌍", title: "胡汉交融", desc: "西域香料、食材大规模传入，长安成为世界美食中心" },
+            { icon: "🍖", title: "羊肉独尊", desc: "羊肉为肉食主流，烤、煮、炖技法登峰造极" },
+            { icon: "🍷", title: "酒文化盛", desc: "文人饮酒佐食成风，酒肴搭配讲究意境" },
+            { icon: "🍜", title: "面食革新", desc: "胡饼、冷淘等面食成为民间主流美食" }
+        ],
+        intro: "大唐饮食是中国历史的第一次全球化高峰。西域胡食、南洋香料汇聚长安。羊肉为主，胡饼为宗，更有文人雅士推崇的极致‘切鲙’竞技。这是一个张扬、热烈且充满胡风气象的时代。",
+        dishes: [
+            { id: 't1', name: "金齑玉脍", tagline: "鲈鱼切鲙之冠", detail: "薄如蝉翼的鲈鱼片，佐以柑橘、熟栗子等调制的金黄色蘸料。唐代食鲙之风极盛，甚至有专门的‘鲙手’进行表演。", story: "隋炀帝曾赞其为‘东南第一佳味’，至唐代，吃鱼生已成为文人雅集的最高境界。李白诗云‘呼儿将出换美酒，与尔同销万古愁’，佐酒的极品便是此物。", ingredients: [{n: "鲈鱼", q: "一尾"}, {n: "柑橘", q: "三颗"}, {n: "熟栗子", q: "五颗"}], img: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/5e5870b65944481da8c3f7769663f194.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=202603302319325B33C297E33E3AEBE604&rrcfp=8a172a1a&x-expires=1775488772&x-signature=D8OECElrWbbdS2FDtdLyKyaMWAY%3D" },
+            { id: 't2', name: "樱桃饆饠", tagline: "长安春日点心", detail: "半透明的酥皮中透出樱桃的红润，一口咬下，樱桃的果酸与酥油的浓醇在口中爆开。", story: "唐宣宗曾分赐群臣，在当时，饆饠是胡人带来的西域面食，唐人加以改良，放入时令水果，代表了盛唐极度精致的审美。", ingredients: [{n: "鲜樱桃", q: "半斤"}, {n: "面粉", q: "三两"}, {n: "西域酥油", q: "二两"}], img: "https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/53d6e98993cb4809a0fed34c84c6f137.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=20260330222707D23ADF010AC07AC830C0&rrcfp=8a172a1a&x-expires=1775485627&x-signature=mk0u5Sg9mtTF7VM9aUpm6cEAPzg%3D" },
+            { id: 't3', name: "冷淘", tagline: "杜甫笔下的翠绿", detail: "以新鲜槐叶榨汁和面，煮熟后用井水激透，色如碧玉，口感筋道清凉。", story: "杜甫特作《槐叶冷淘》诗赞美：‘青青高槐叶，采掇付中厨...经齿冷于雪，劝人投此珠’。这是古代文人夏日消暑的顶级享受。", ingredients: [{n: "嫩槐叶汁", q: "一小碗"}, {n: "上等小麦粉", q: "一斤"}], img: "https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/acb465a45f3c4ada8a0e1dfa8d682ffe.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=202603311916249CE3226CE32086878078&rrcfp=8a172a1a&x-expires=1775560584&x-signature=IEqV4bTm5yzLwj7qrUb0uKG2xxI%3D" },
+            { id: 't4', name: "胡麻饼", tagline: "丝路第一干粮", detail: "沾满芝麻的巨型烤饼，外皮酥脆，内里扎实。长安西市街头最火爆的快餐。", story: "白居易曾作诗‘胡麻饼样学京都，面脆油香新出炉’。这种饼不易腐坏，是丝绸之路上商旅跨越沙漠戈壁的保命粮。", ingredients: [{n: "白芝麻", q: "大量"}, {n: "发酵面团", q: "一坨"}], img: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/d183470df5d94ae28ffb8b506d461c26.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=20260331221456E2A8612AAD1DAE173565&rrcfp=8a172a1a&x-expires=1775571296&x-signature=REa%2FX65gIEJJxnzm9PL5nt9BTvc%3D" },
+            { id: 't5', name: "光明虾炙", tagline: "猛火下的视觉盛宴", detail: "将大个活虾串起，在猛火上急速炙烤，刷上特制密酿，虾壳焦脆发亮。", story: "唐代宴会不仅讲究味道，更讲究视觉冲击。这道菜在摇曳的火光下金黄闪亮，故名‘光明’，极具大唐张扬之美。", ingredients: [{n: "鲜活大虾", q: "六只"}, {n: "西域香料", q: "少许"}], img: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/49292380926f4ad78459954706f2b263.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=20260331211712016AE5C2562C079C3869&rrcfp=8a172a1a&x-expires=1775567832&x-signature=b9Vot7T9fxoE3BLCDAX%2BV0qo66I%3D" },
+            { id: 't6', name: "透花糍", tagline: "糯米中的翡翠", detail: "极品糯米反复捶打，包裹细腻豆沙，外皮薄如蝉翼，能清晰透出内馅的花纹。", story: "古籍《清异录》记载，这道点心对‘捶打’工艺要求极高，厨师需要极大的臂力才能将糯米打得如胶似玉，是贵族宴席的压轴甜品。", ingredients: [{n: "上等糯米", q: "一斤"}, {n: "细腻豆沙", q: "五两"}], img: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/a0262d8a439143f4931b63ea2353f3f0.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=202603312126564AF0324A739A1966D982&rrcfp=8a172a1a&x-expires=1775568417&x-signature=fn373wNiteqG8uChGO02qOK17zU%3D" },
+            { id: 't7', name: "浑羊殁忽", tagline: "宫廷顶级盛宴", detail: "将鹅去毛洗净，腹中填满糯米饭和羊肉，再整只塞入羊腹中烤制，羊熟后取鹅食用。", story: "这是唐代宫廷宴请外国使节的压轴大菜，集烤羊与烤鹅的精华于一体，工艺繁复，代表了盛唐的奢华饮食。", ingredients: [{n: "肥鹅", q: "一只"}, {n: "羔羊", q: "一头"}, {n: "糯米", q: "半斤"}], img: "https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/2e5b79193e37412eaabb17b293954c08.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=20260401103442E5BA48620F175D754CF0&rrcfp=8a172a1a&x-expires=1775615682&x-signature=Jg9ci3ARUNhddf7bpvAWVtiQAsE%3D" },
+            { id: 't8', name: "黄耆羊肉", tagline: "药膳结合典范", detail: "羊肉与黄耆、当归等药材同炖，肉质软烂，汤汁滋补，是长安贵族的养生佳品。", story: "唐代医药发展迅速，食疗理念深入人心，这道菜将西域羊肉与中原药膳结合，是胡汉饮食融合的经典之作。", ingredients: [{n: "带骨羊肉", q: "二斤"}, {n: "黄耆", q: "三钱"}, {n: "当归", q: "二钱"}], img: "https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/eaf2a98834a04d8182b0fa3d67194625.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=2026040112053224942B75486492D24321&rrcfp=8a172a1a&x-expires=1775621133&x-signature=oAoMo7hCY97NFxKGpYncf%2FUeRhc%3D" }
+        ]
+    },
+    song: {
+        name: "大宋",
+        color: "#6b705c",
+        bg: "#f3f5ef",
+        icon: "🍵",
+        features: [
+            { icon: "🔥", title: "炒菜诞生", desc: "煤炭普及使火力可控，炒菜技法成熟并广泛普及" },
+            { icon: "🌃", title: "夜市文化", desc: "汴京临安夜市通宵达旦，平民美食百花齐放" },
+            { icon: "🍵", title: "点茶文化", desc: "斗茶、点茶成为文人雅士的重要社交活动" },
+            { icon: "📜", title: "饮食专著", desc: "《山家清供》《东京梦华录》等记录饮食文化" }
+        ],
+        intro: "大宋是平民饮食的觉醒时代。汴京与临安的夜市通宵达旦，煤炭的普及让‘炒菜’技法走向成熟。苏轼、林洪等文人墨客将饮食升华为一种极其讲究的生活艺术。",
+        dishes: [
+            { id: 's1', name: "东坡肉", tagline: "慢火功夫的绝唱", detail: "以黄酒代水，小火慢煨五花肉数小时，直至肉质红亮酥烂，肥而不腻，入口即化。", story: "苏轼贬谪黄州时，因当地猪肉贱如泥，于是发明了这套‘慢着火，少着水，火候足时他自美’的烹饪秘籍，成就千古绝唱。", ingredients: [{n: "带皮五花肉", q: "两斤"}, {n: "陈年黄酒", q: "一瓶"}, {n: "冰糖", q: "二两"}], img: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/d7be54cd85cc47cab632e1c5e560d7db.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=202603302141001A0B5763BBE3894D8AA8&rrcfp=8a172a1a&x-expires=1775482862&x-signature=tVjsjwdj7%2F5pBfNtA9v%2B9RFYM2Y%3D" },
+            { id: 's2', name: "拨霞供", tagline: "最早的雪夜火锅", detail: "将兔肉切得飞薄，夹起在滚烫的汤锅中一涮即熟，肉片色泽粉红如晚霞。", story: "美食家林洪在武夷山雪夜访友，偶获野兔，便在风雪中架起火炉涮食，并赋诗‘浪涌晴江雪，风翻照晚霞’，这是中国文字记载最早的火锅。", ingredients: [{n: "鲜兔肉", q: "一斤"}, {n: "秘制高汤", q: "一锅"}], img: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/2a911e24708542c181a5c829d33d45b6.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=20260401124921FFE7FFEC3E9EDB2E976C&rrcfp=8a172a1a&x-expires=1775623761&x-signature=WKr9HDZW0oj0g%2BnCCecQVyOsIgE%3D" },
+            { id: 's3', name: "山家清供", tagline: "山野间的雅致", detail: "用松子、桂花、蜂蜜等纯天然山野食材调制的清雅点心，不染凡尘烟火气。", story: "宋代文人追求‘清淡为上’的极简美学，林洪所著《山家清供》记录了大量此类不求油腻、只求本真的高雅吃法。", ingredients: [{n: "高山松子", q: "二两"}, {n: "秋日桂花", q: "一捧"}], img: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/549c9a47745d41459812a96f5b5f9395.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=20260401185416F794312BFA68A9462487&rrcfp=8a172a1a&x-expires=1775645656&x-signature=uKsl1p02A7vguIgQYF84jtlvGcA%3D" },
+            { id: 's4', name: "蟹黄兜子", tagline: "极致的剥蟹工艺", detail: "剔出纯净的蟹肉与蟹黄，用透明的绿豆粉皮包裹，上笼屉蒸制而成。", story: "宋人爱吃蟹到了狂热的地步。为了优雅便捷地吃蟹，厨师们发明了将精华剥出做成‘兜子’（类似烧麦）的做法，一口尽享秋日鲜美。", ingredients: [{n: "大闸蟹", q: "三只"}, {n: "绿豆粉", q: "少许"}], img: "https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/a801ff853d1547a7bf454434f4a4e377.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=2026040119344889985C3B10AFC143062B&rrcfp=8a172a1a&x-expires=1775648088&x-signature=oxpCg09fZJ%2BTah59PEUeNnaYSL8%3D" },
+            { id: 's5', name: "酥琼叶", tagline: "古代的蜂蜜吐司", detail: "将冷馒头切成极薄的片，涂抹蜂蜜后在炭火上烤至金黄酥脆。", story: "这道听起来像现代西式甜点的零食，却是宋代文人深夜苦读时的绝佳伴侣，既能充饥又不会弄脏书本。", ingredients: [{n: "冷馒头", q: "两个"}, {n: "上等蜂蜜", q: "适量"}], img: "https://picsum.photos/id/1091/800/600" },
+            { id: 's6', name: "莲房鱼包", tagline: "西湖的美学实验", detail: "将鲜活鱼肉切碎调味，小心翼翼地塞入挖空的嫩莲蓬孔中，蒸熟后淋汁。", story: "这道菜不仅有鱼的至鲜，更吸收了莲蓬的清香，外形奇特雅致，完美诠释了南宋临安（杭州）西湖边极致柔美的风雅气质。", ingredients: [{n: "鲜活鱼肉", q: "半斤"}, {n: "带子嫩莲蓬", q: "四个"}], img: "https://picsum.photos/id/1092/800/600" },
+            { id: 's7', name: "宋嫂鱼羹", tagline: "西湖第一羹", detail: "以鳜鱼为主料，配以火腿、香菇、竹笋等，勾芡成羹，色泽金黄，鲜嫩滑润。", story: "相传南宋西湖边宋五嫂创制此羹，高宗赵构尝后大加赞赏，一时成为临安名馔，至今仍是杭帮菜代表。", ingredients: [{n: "鳜鱼", q: "一条"}, {n: "火腿", q: "一两"}, {n: "竹笋", q: "三两"}], img: "https://picsum.photos/id/1112/800/600" },
+            { id: 's8', name: "蟹酿橙", tagline: "秋味双绝", detail: "将大闸蟹拆肉，加黄酒、醋、姜等调味，填入掏空的橙子中蒸制，蟹香与橙香交融。", story: "《山家清供》记载的宋代名菜，将河鲜与水果完美结合，体现了宋人极致的饮食美学。", ingredients: [{n: "大闸蟹", q: "两只"}, {n: "脐橙", q: "两个"}, {n: "黄酒", q: "少许"}], img: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/22c402b04ef24002893f9aa65ab790da.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=202604011232282B735E4601FEA62E428F&rrcfp=8a172a1a&x-expires=1775622748&x-signature=2kzzPHwKyelWCa6yqjtJ0PWvbKE%3D" }
+        ]
+    },
+    yuan: {
+        name: "大元",
+        color: "#1d3557",
+        bg: "#f0f4f8",
+        icon: "🏹",
+        features: [
+            { icon: "🐑", title: "肉食主导", desc: "蒙古族饮食传统，牛羊肉成为餐桌绝对主角" },
+            { icon: "🥛", title: "奶制品普及", desc: "奶皮子、奶酪等奶制品大规模进入中原饮食" },
+            { icon: "📚", title: "食疗专著", desc: "《饮膳正要》系统总结食疗与营养学理论" },
+            { icon: "🌍", title: "中西融合", desc: "中亚烹饪技法传入，烤、涮成为主流" }
+        ],
+        intro: "蒙汉交融的时代，北方草原的粗犷彻底改变了中原餐桌。牛羊肉的烹饪进入精细化巅峰，奶制品大规模普及。同时，由太医忽思慧编撰的《饮膳正要》标志着中国食疗与营养学的诞生。",
+        dishes: [
+            { id: 'y1', name: "涮羊肉", tagline: "行军中的奇迹", detail: "精选羊后腿肉，切得薄如纸帛，在沸腾的清汤中上下涮动几下即可捞出，蘸芝麻酱食用。", story: "相传忽必烈在南征途中遭遇敌袭，急于进餐，厨师情急之下将羊肉切薄直接入沸水飞速烫熟。忽必烈吃后大赞，赐名‘涮羊肉’。", ingredients: [{n: "羊后腿肉", q: "一斤"}, {n: "特调芝麻酱", q: "一碗"}], img: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/7c99938c91494d98b4a22849cc10b643.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=2026033022195879B5DC6905C6F4E31C21&rrcfp=8a172a1a&x-expires=1775485199&x-signature=2MHByGaeAks3P82IJ7YRsJP5KGA%3D" },
+            { id: 'y2', name: "烤全羊", tagline: "草原最高礼遇", detail: "挑选肥硕的整羊，腹内填满香料，在特制的炭火架上持续翻烤数小时，至皮酥肉嫩。", story: "在元代宫廷盛大的‘岁赐’（新年宴会）中，烤全羊是必不可少的重头戏，代表了蒙古黄金家族最高规格的待客之道。", ingredients: [{n: "肥硕整羊", q: "一头"}, {n: "秘制香料", q: "一包"}], img: "https://picsum.photos/id/1094/800/600" },
+            { id: 'y3', name: "奶皮子", tagline: "乳制品的精华", detail: "将鲜牛奶文火慢熬，表面凝结出一层厚厚的脂肪与蛋白质混合物，挑起晾干即成。", story: "蒙古族将乳制品统称为‘白食’，视其为最纯洁的食物。奶皮子是白食中的极品，只有尊贵的客人才有资格品尝。", ingredients: [{n: "草原鲜牛奶", q: "十斤"}], img: "https://picsum.photos/id/1095/800/600" },
+            { id: 'y4', name: "炒米", tagline: "征服世界的铁骑粮", detail: "将糜子经过煮、炒、碾等多道工序制成的干粮，可直接用奶茶泡食。", story: "蒙古骑兵之所以能进行超长距离的闪电战，正是因为每个士兵马背上都有一袋炒米。它体积小、热量高、保质期极长。", ingredients: [{n: "优质糜子", q: "一斗"}], img: "https://picsum.photos/id/1096/800/600" },
+            { id: 'y5', name: "羊肉包子", tagline: "厚重的草原风味", detail: "用发面做皮，内包大块羊肉与大葱，皮薄馅大，咬一口汁水四溢。", story: "元代大都（北京）街头最常见的美食。这种融合了中原面食技法与草原肉食偏好的食物，至今仍影响着北方的饮食习惯。", ingredients: [{n: "肥瘦羊肉", q: "一斤"}, {n: "大葱", q: "两根"}], img: "https://picsum.photos/id/1097/800/600" },
+            { id: 'y6', name: "饮膳羊头", tagline: "药食同源的起点", detail: "精选羊头，辅以当归、陈皮等十余味中草药长时间炖煮，具有极强的滋补功效。", story: "出自忽必烈的御医忽思慧之手。他在《饮膳正要》中强调食物的药理作用，这道菜便是‘药膳’概念在宫廷中成功实践的典范。", ingredients: [{n: "带皮羊头", q: "一个"}, {n: "当归等药材", q: "三片"}], img: "https://picsum.photos/id/1098/800/600" },
+            { id: 'y7', name: "马奶酒", tagline: "草原第一饮", detail: "发酵马奶制成的低度酒，酸甜适口，是蒙古贵族的日常饮品。", story: "元代将马奶酒定为宫廷御酒，每年举行盛大的‘诈马宴’，必饮此酒，是草原文化的重要象征。", ingredients: [{n: "鲜马奶", q: "十斤"}, {n: "酒曲", q: "少许"}], img: "https://picsum.photos/id/1114/800/600" },
+            { id: 'y8', name: "手抓羊肉", tagline: "草原豪放吃法", detail: "精选羊肋条肉，清水煮熟，不加过多调料，蘸盐食用，尽显羊肉本味。", story: "这是蒙古族最传统的吃法，体现了草原民族大口吃肉、大碗喝酒的豪放性格，元代传入中原后深受北方民众喜爱。", ingredients: [{n: "羊肋条", q: "二斤"}, {n: "食盐", q: "少许"}, {n: "花椒", q: "几粒"}], img: "https://picsum.photos/id/1115/800/600" }
+        ]
+    },
+    ming: {
+        name: "大明",
+        color: "#a44a3f",
+        bg: "#f8f1f0",
+        icon: "⛵",
+        features: [
+            { icon: "🌶️", title: "辣椒传入", desc: "美洲作物辣椒传入，彻底改变中国饮食口味格局" },
+            { icon: "🌍", title: "海贸繁荣", desc: "郑和下西洋带来大量海外食材与烹饪技法" },
+            { icon: "🍚", title: "杂粮普及", desc: "番薯、玉米等美洲作物成为平民主食补充" },
+            { icon: "🍲", title: "菜系雏形", desc: "淮扬、川粤等地方菜系开始形成独特风格" }
+        ],
+        intro: "大明是一个剧变的时代。郑和下西洋带来了海味，哥伦布大交换让辣椒、番薯、玉米等美洲作物进入中国，彻底重塑了华夏的餐桌。江南经济的繁荣让淮扬菜在此定型。",
+        dishes: [
+            { id: 'm1', name: "狮子头", tagline: "扬州风味之魂", detail: "猪肉七分肥三分瘦，切成细丁绝不可剁成泥，团成大丸子清炖，口感松软如云朵。", story: "明代烹饪巨著《食宪鸿秘》记录了这种精细做法。因其炖熟后表面凹凸不平，形似雄狮的头颅而得名，是淮扬菜刀工与火候的巅峰。", ingredients: [{n: "精选猪五花", q: "一斤"}, {n: "清脆荸荠", q: "四颗"}], img: "https://picsum.photos/id/1099/800/600" },
+            { id: 'm2', name: "糟鹅", tagline: "金瓶梅里的市井味", detail: "将肥鹅煮熟后，浸泡在陈年酒糟中腌制，鹅肉吸满酒香，骨酥肉嫩，清香扑鼻。", story: "明代笔记小说（如《金瓶梅》）中频繁出现的市井美味。它反映了当时运河沿线商人阶层奢靡且讲究情调的饮食风气。", ingredients: [{n: "江南大肥鹅", q: "一只"}, {n: "陈年酒糟", q: "一坛"}], img: "https://picsum.photos/id/1100/800/600" },
+            { id: 'm3', name: "烤乳猪", tagline: "宫廷盛宴之星", detail: "选取未断奶的幼猪，以明炉烧烤至表皮红润如玛瑙，入口酥脆，肉质极为滑嫩。", story: "明代宫廷盛宴极其奢华，烤乳猪常常作为主菜登场，它也是后来清代‘满汉全席’雏形中不可或缺的重要角色。", ingredients: [{n: "散养小乳猪", q: "一只"}], img: "https://picsum.photos/id/1101/800/600" },
+            { id: 'm4', name: "辣椒炒肉", tagline: "火辣时代的初啼", detail: "将新鲜猪肉切片，与一种名为‘番椒’的新奇蔬菜大火快炒，辛辣刺鼻却极其下饭。", story: "辣椒在明末从美洲传入中国，最初只作为观赏植物。底层百姓最先发现其去腥增进食欲的妙用，自此中国人的味觉被彻底点燃。", ingredients: [{n: "新鲜猪肉", q: "半斤"}, {n: "初代引进辣椒", q: "三两"}], img: "https://picsum.photos/id/1102/800/600" },
+            { id: 'm5', name: "鱼翅羹", tagline: "远洋贸易的见证", detail: "将鱼翅泡发，配合干贝、火腿等吊出的顶级高汤一同烩制，鲜美绝伦且质地粘稠。", story: "随着明代中后期民间海外贸易的繁荣，原本罕见的海产干货（如海参、鱼翅）开始大规模流入江南权贵的餐桌，成为炫耀财富的象征。", ingredients: [{n: "上等鱼翅", q: "一份"}, {n: "金华火腿", q: "二两"}], img: "https://picsum.photos/id/1103/800/600" },
+            { id: 'm6', name: "过桥米线", tagline: "南方的极致温度", detail: "用厚厚的鸡油封住滚烫的鸡汤，使其不冒一丝热气。食客将生肉片与米线投入其中，瞬间烫熟。", story: "相传明末清初滇南一位妻子为给岛上读书的丈夫送饭而发明。这种利用油层保温、现烫现食的智慧，是对温度掌控的极致表现。", ingredients: [{n: "顺滑大米线", q: "一碗"}, {n: "老母鸡汤", q: "一锅"}], img: "https://picsum.photos/id/1104/800/600" },
+            { id: 'm7', name: "酱肘子", tagline: "北方酱卤之王", detail: "猪前肘用十余种香料卤制数小时，色泽红亮，肉质软烂，凉吃热吃皆宜。", story: "明代北京酱肉铺遍布全城，酱肘子成为京城百姓逢年过节的必备硬菜，至今仍是北方酱卤的代表。", ingredients: [{n: "猪前肘", q: "一个"}, {n: "八角桂皮", q: "适量"}, {n: "黄豆酱", q: "半斤"}], img: "https://picsum.photos/id/1116/800/600" },
+            { id: 'm8', name: "三不粘", tagline: "宫廷甜点绝技", detail: "以鸡蛋黄、白糖、淀粉炒制而成，不粘盘、不粘筷、不粘牙，色泽金黄，口感绵密。", story: "明代宫廷御厨创制的甜点，制作工艺要求极高，需不停翻炒上千次，是中式甜点的绝技之作。", ingredients: [{n: "鸡蛋黄", q: "六个"}, {n: "绵白糖", q: "四两"}, {n: "绿豆淀粉", q: "二两"}], img: "https://picsum.photos/id/1117/800/600" }
+        ]
+    },
+    qing: {
+        name: "大清",
+        color: "#cc9933",
+        bg: "#f9f8f2",
+        icon: "🏛️",
+        features: [
+            { icon: "🍽️", title: "满汉全席", desc: "集南北饮食之大成，代表中国烹饪最高成就" },
+            { icon: "🥢", title: "菜系定型", desc: "八大菜系正式形成，各具特色与风格" },
+            { icon: "📖", title: "饮食理论", desc: "《随园食单》系统总结中国烹饪理论" },
+            { icon: "🍶", title: "满汉融合", desc: "满族饮食与汉族饮食深度融合创新" }
+        ],
+        intro: "大清是华夏饮食的集大成时期。满汉文化在餐桌上融合，催生了‘满汉全席’。现代八大菜系在此正式分野、定型。袁枚的《随园食单》更是将饮食理论推向了文字的绝巅。",
+        dishes: [
+            { id: 'q1', name: "随园豆腐", tagline: "平凡中的惊雷", detail: "极其细嫩的豆腐，不加一滴水，纯用醇厚的鸡汤煨煮，辅以蘑菇、虾米，使豆腐入味深沉如海鲜。", story: "才子袁枚为了求得这道菜的秘方，曾放下身段亲自去汪姓友人家中行礼请教。他主张‘一物有一物之味’，反对滥用调料掩盖本味。", ingredients: [{n: "极品嫩豆腐", q: "两块"}, {n: "浓郁鸡汤", q: "一碗"}], img: "https://picsum.photos/id/1105/800/600" },
+            { id: 'q2', name: "佛跳墙", tagline: "坛起荤香飘四邻", detail: "将鲍鱼、海参、鱼唇、花胶等十八种名贵食材汇聚一绍兴酒坛中，以荷叶封口，文火慢煨数日。", story: "清末福州聚春园首创。相传这道菜做好后开坛，香气四溢，引得附近寺庙里修行多年的老和尚都忍不住跳过墙来讨要一口。", ingredients: [{n: "野生鲍鱼", q: "四只"}, {n: "极品海参", q: "四条"}, {n: "厚实花胶", q: "二两"}], img: "https://picsum.photos/id/1106/800/600" },
+            { id: 'q3', name: "松鼠鳜鱼", tagline: "乾隆江南之爱", detail: "将鳜鱼肉改刀成菱形花纹，油炸后鱼肉翻卷形似松鼠的尾巴，最后淋上滚烫的糖醋卤汁，发出‘吱吱’声响。", story: "乾隆皇帝下江南游览苏州狮子林时，厨师巧妙呈上此菜。皇帝见其形神兼备，酸甜适口，龙颜大悦，自此成为苏帮菜的头牌。", ingredients: [{n: "鲜活鳜鱼", q: "一条"}, {n: "特调番茄酱汁", q: "少许"}], img: "https://picsum.photos/id/1107/800/600" },
+            { id: 'q4', name: "麻婆豆腐", tagline: "川菜民间的逆袭", detail: "讲究‘麻、辣、烫、香、酥、嫩、鲜、活’八字箴言。红油泛波，牛肉沫酥香，豆腐形碎而神不散。", story: "清代同治年间，成都万福桥头的陈氏豆腐店（老板娘脸上有麻子，人称陈麻婆）所创。它凭借极致的辛香刺激，代表了川菜平民化的巅峰力量。", ingredients: [{n: "石膏嫩豆腐", q: "一盒"}, {n: "郫县豆瓣酱", q: "两勺"}], img: "https://picsum.photos/id/1108/800/600" },
+            { id: 'q5', name: "满汉全席", tagline: "礼仪与烹饪之巅", detail: "包含一百零八道菜肴，分三天六顿吃完，汇聚天上飞的、水里游的、山上跑的所有珍奇食材。", story: "最初是清初为了调和满汉民族矛盾而设立的官场宴席。后来经过历代御厨的扩充，演变成了中华烹饪技艺的终极展览馆与代名词。", ingredients: [{n: "天下山珍", q: "若干"}, {n: "四海海味", q: "若干"}], img: "https://picsum.photos/id/1109/800/600" },
+            { id: 'q6', name: "鹿鸣春饼", tagline: "旗人的岁时记", detail: "烙得薄如蝉翼的麦面春饼，卷入熏肉、炒绿豆芽、韭菜等时令蔬菜，口感丰富，春意盎然。", story: "满族入关后，保留了吃肉的习惯，同时也吸收了北方汉族立春吃春饼的农耕文化。‘咬春’成为满汉家庭共同的岁时节令习俗。", ingredients: [{n: "精白面粉", q: "半斤"}, {n: "熏肉与时蔬", q: "一盘"}], img: "https://picsum.photos/id/1110/800/600" },
+            { id: 'q7', name: "北京烤鸭", tagline: "京城第一味", detail: "选用北京填鸭，果木炭火烤制，皮脆肉嫩，卷荷叶饼配葱丝甜面酱食用。", story: "烤鸭技法源于南京，清代传入北京后改良，成为宫廷名菜，后流入民间，成为北京最具代表性的美食。", ingredients: [{n: "北京填鸭", q: "一只"}, {n: "果木炭", q: "适量"}, {n: "荷叶饼", q: "一打"}], img: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/0cf7aed7932047e9895e4e5029c0e5ce.png~tplv-a9rns2rl98-24:720:720.png?lk3s=8e244e95&rcl=2026033022340780572A8AD5A840680310&rrcfp=8a172a1a&x-expires=1775486048&x-signature=b24tIBjEtwmpHeBENkEhEBB2VNk%3D" },
+            { id: 'q8', name: "冰糖葫芦", tagline: "市井酸甜记忆", detail: "山楂果串成串，裹以熬制的冰糖，冷却后晶莹剔透，酸甜开胃。", story: "清代京城街头常见的小吃，最初是宫廷药膳，后传入民间，成为北方冬季最具代表性的街头美食。", ingredients: [{n: "山楂果", q: "一串"}, {n: "冰糖", q: "二两"}, {n: "白芝麻", q: "少许"}], img: "https://picsum.photos/id/1119/800/600" }
+        ]
+    }
+};
+let unlockedDishes = new Set();
+let selectedChallenge = null;
+let potIngredients = [];
+let currentSection = 'hero';
+let currentDynasty = '';
+let fromDynasty = '';
+const ALL_INGS = [
+    "五花肉", "黄酒", "冰糖", "鲜兔肉", "高山松子", "秋日桂花", "大闸蟹", "冷馒头", "上等蜂蜜", "鲜活鱼肉", "嫩莲蓬",
+    "羊后腿肉", "芝麻酱", "肥硕整羊", "秘制香料", "鲜牛奶", "糜子", "大葱", "带皮羊头", "中草药", "荸荠",
+    "大肥鹅", "陈年酒糟", "小乳猪", "新鲜猪肉", "初代引进辣椒", "鱼翅", "火腿", "大米线", "老母鸡汤", "嫩豆腐",
+    "鲍鱼", "海参", "花胶", "鳜鱼", "番茄酱", "郫县豆瓣酱", "天下山珍", "精白面粉", "鲈鱼", "柑橘", "熟栗子",
+    "鲜樱桃", "面粉", "酥油", "槐叶汁", "芝麻", "鲜活大虾", "糯米", "豆沙", "肥鹅", "羔羊", "黄耆", "当归",
+    "带骨羊肉", "竹笋", "脐橙", "鲜马奶", "酒曲", "羊肋条", "食盐", "花椒", "猪前肘", "八角桂皮", "黄豆酱",
+    "鸡蛋黄", "绵白糖", "绿豆淀粉", "北京填鸭", "果木炭", "荷叶饼", "山楂果"
+];
+const UNIQUE_INGS = [...new Set(ALL_INGS)].sort(() => 0.5 - Math.random()).slice(0, 30);
+function createParticles() {
+    const container = document.getElementById('particles');
+    for(let i=0; i<30; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.width = p.style.height = (Math.random() * 4 + 2) + 'px';
+        p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        p.style.animationDelay = (Math.random() * 10) + 's';
+        container.appendChild(p);
+    }
+}
+function createMouseParticles(e) {
+    const particle = document.createElement('div');
+    particle.className = 'mouse-particle';
+    const colors = ['#d62828','#6b705c','#1d3557','#a44a3f','#cc9933'];
+    particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    const size = Math.random() * 4 + 2;
+    particle.style.width = particle.style.height = size + 'px';
+    particle.style.left = e.clientX + 'px';
+    particle.style.top = e.clientY + 'px';
+    document.body.appendChild(particle);
+    setTimeout(() => {
+        particle.style.opacity = '0';
+        particle.style.transform = `translate(-50%, -50%) scale(0)`;
+        setTimeout(() => particle.remove(), 500);
+    }, 300);
+}
+function renderHome() {
+    const container = document.getElementById('dynasty-container');
+    container.innerHTML = Object.keys(DB).map((key, index) => {
+        const d = DB[key];
+        return `
+        <section class="dynasty-section section-marker" id="section-${key}" data-nav="${key}" data-bg="${d.bg}">
+            <div class="floating-deco text-[30rem] -right-20 top-1/2 -translate-y-1/2 font-cursive" style="color: ${d.color}">${d.icon}</div>
+            <div class="w-full max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12 relative z-10">
+                <div class="md:w-5/12 space-y-8 content-block">
+                    <h3 class="text-8xl md:text-9xl font-cursive relative drop-shadow-md" style="color: ${d.color}">
+                        ${d.name}
+                        <span class="absolute -bottom-4 left-2 text-sm font-sans tracking-[0.5em] text-stone-400 uppercase">Dynasty</span>
+                    </h3>
+                    <div class="w-16 h-1 rounded-full" style="background-color: ${d.color}"></div>
+                    <p class="text-stone-600 leading-loose text-lg text-justify">${d.intro}</p>
+                    <button onclick="enterDynasty('${key}')" class="px-8 py-3 bg-${d.color} text-white rounded-full font-bold hover:opacity-90 transition-all shadow-lg w-fit">
+                        探索${d.name}全本食单
+                    </button>
+                </div>
+                <div class="md:w-6/12 card-container grid grid-cols-2 gap-4">
+                    ${d.dishes.slice(0, 4).map((dish, i) => `
+                    <div class="recipe-card parchment p-6 rounded-2xl cursor-pointer hover:scale-105 transition-all duration-300 border border-transparent hover:border-stone-300 shadow-md hover:shadow-xl relative overflow-hidden group" onclick="enterDish('${key}', '${dish.id}')">
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="text-[10px] text-stone-400 mb-3 tracking-widest border-b border-stone-200 pb-2">#${dish.tagline}</div>
+                        <div class="font-bold text-stone-800 text-lg relative z-10 group-hover:text-red-800 transition-colors">${dish.name}</div>
+                    </div>
+                    `).join('')}
+                </div>
+            </div>
+        </section>
+        `;
+    }).join('');
+    setupGSAPAnimations();
+}
+function renderDynastyDetail(dynId) {
+    const d = DB[dynId];
+    currentDynasty = dynId;
+    document.getElementById('dynasty-detail-container').innerHTML = `
+    <div class="dynasty-detail-section" style="background-color: ${d.bg}">
+        <button onclick="goHome()" class="mb-8 text-stone-600 hover:text-${d.color} transition flex items-center group font-bold tracking-widest text-sm">
+            <span class="mr-3 group-hover:-translate-x-2 transition-transform duration-300">←</span> 返回千年纵览
+        </button>
+        <div class="search-container mb-8">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" placeholder="搜索${d.name}菜品..." oninput="filterDynastyDishes('${dynId}')">
+        </div>
+        <div class="dynasty-header">
+            <div class="dynasty-badge" style="color: ${d.color}">${d.icon}</div>
+            <h2 class="dynasty-full-title" style="color: ${d.color}">${d.name}食单</h2>
+            <p class="text-stone-600 max-w-3xl mx-auto leading-loose text-lg">${d.intro}</p>
+        </div>
+        <div class="dynasty-features">
+            ${d.features.map(feature => `
+            <div class="feature-card">
+                <div class="feature-icon">${feature.icon}</div>
+                <h3 class="font-bold text-xl mb-2">${feature.title}</h3>
+                <p class="text-stone-600 text-sm">${feature.desc}</p>
+            </div>
+            `).join('')}
+        </div>
+        <h3 class="text-3xl font-cursive text-center mb-6" style="color: ${d.color}">${d.name}八味</h3>
+        <div id="dynasty-dishes-grid" class="all-dishes-grid">
+            ${d.dishes.map(dish => `
+            <div class="recipe-card parchment p-6 rounded-2xl cursor-pointer hover:scale-105 transition-all duration-300 border border-transparent hover:border-stone-300 shadow-md hover:shadow-xl relative overflow-hidden group" onclick="enterDish('${dynId}', '${dish.id}')">
+                <div class="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="text-[10px] text-stone-400 mb-3 tracking-widest border-b border-stone-200 pb-2">#${dish.tagline}</div>
+                <div class="font-bold text-stone-800 text-lg relative z-10 group-hover:text-${d.color} transition-colors">${dish.name}</div>
+                <div class="mt-2 text-xs text-stone-500">
+                    食材：${dish.ingredients.map(i => i.n).join('、')}
+                </div>
+            </div>
+            `).join('')}
+        </div>
+    </div>
+    `;
+    gsap.to("body", { backgroundColor: d.bg, duration: 0.8 });
+    playDynastyMusic(dynId);
+}
+function setupGSAPAnimations() {
+    const heroTl = gsap.timeline();
+    heroTl.to(".hero-title", { opacity: 1, y: 0, duration: 1.5, ease: "power4.out", delay: 0.5 })
+         .to(".hero-subtitle", { opacity: 1, duration: 1 })
+         .to(".hero-scroll-hint", { opacity: 1, duration: 1 }, "-=0.5");
+
+    const sections = gsap.utils.toArray('.section-marker');
+    sections.forEach((sec) => {
+        const navId = sec.getAttribute('data-nav');
+        const bgColor = sec.getAttribute('data-bg');
+        ScrollTrigger.create({
+            trigger: sec,
+            start: "top 30%",
+            end: "bottom 30%",
+            onEnter: () => {
+                gsap.to("body", { backgroundColor: bgColor, duration: 0.8 });
+                updateNav(navId);
+                playDynastyMusic(navId);
+            },
+            onEnterBack: () => {
+                gsap.to("body", { backgroundColor: bgColor, duration: 0.8 });
+                updateNav(navId);
+                playDynastyMusic(navId);
+            }
+        });
+        if(navId && navId !== 'hero' && navId !== 'footer') {
+            const content = sec.querySelector('.content-block');
+            const cards = sec.querySelectorAll('.recipe-card');
+            const bgIcon = sec.querySelector('.floating-deco');
+            gsap.from(content, {
+                x: -50, opacity: 0, duration: 1, ease: "power3.out",
+                scrollTrigger: { trigger: sec, start: "top 60%" }
+            });
+            gsap.fromTo(bgIcon, { y: 100 }, {
+                y: -100, ease: "none",
+                scrollTrigger: { trigger: sec, scrub: true }
+            });
+            gsap.from(cards, {
+                y: 80, opacity: 0, rotationX: 45, transformOrigin: "top center",
+                stagger: 0.15, duration: 1, ease: "back.out(1.5)",
+                scrollTrigger: { trigger: sec, start: "top 65%" }
+            });
+        }
+    });
+}
+function updateNav(id) {
+    document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+    const dots = { hero: 0, tang: 1, song: 2, yuan: 3, ming: 4, qing: 5, footer: 5 };
+    const idx = dots[id];
+    if(idx !== undefined) document.querySelectorAll('.nav-dot')[idx].classList.add('active');
+}
+function scrollToSection(id) {
+    const sec = document.getElementById(`section-${id}`);
+    if(sec) {
+        if(document.getElementById('view-home').style.display === 'none') {
+            switchView('home');
+            setTimeout(() => sec.scrollIntoView({behavior: 'smooth'}), 300);
+        } else {
+            sec.scrollIntoView({behavior: 'smooth'});
+        }
+    }
+}
+function scrollToTop() {
+    gsap.to(window, { scrollTo: 0, duration: 1, ease: "power2.out" });
+    showTooltip(document.getElementById('back-to-top'), "回到顶部啦！", 1500);
+}
+function updateScrollProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.body.scrollHeight - window.innerHeight;
+    const scrollPercent = (scrollTop / docHeight) * 100;
+    document.documentElement.style.setProperty('--scroll-progress', scrollPercent + '%');
+    const backToTop = document.getElementById('back-to-top');
+    if (scrollTop > 300) {
+        backToTop.classList.add('visible');
+    } else {
+        backToTop.classList.remove('visible');
+    }
+    saveScrollPosition();
+}
+function switchView(viewId) {
+    document.querySelectorAll('.view-content').forEach(v => {
+        v.classList.add('hidden-view');
+        setTimeout(() => v.style.display = 'none', 600);
+    });
+    const target = document.getElementById(`view-${viewId}`);
+    setTimeout(() => {
+        target.style.display = 'block';
+        target.offsetHeight;
+        target.classList.remove('hidden-view');
+    }, 600);
+    const titles = { home:'纵览千年', dish:'食谱绝密档案', dynasty: `${currentDynasty ? DB[currentDynasty].name : ''}食单`, week:'本周穿越名菜', old:'翰墨肴香' };
+    document.getElementById('breadcrumb').innerText = `华夏味觉史诗 / ${titles[viewId] || '探索'}`;
+    const nav = document.getElementById('side-nav');
+    if(viewId === 'home') nav.classList.remove('hidden', 'md:hidden');
+    else nav.classList.add('hidden', 'md:hidden');
+}
+function goHome() {
+    switchView('home');
+    ScrollTrigger.refresh();
+    gsap.to("body", { backgroundColor: '#fcfaf2', duration: 0.8 });
+}
+function enterDynasty(dynId) {
+    renderDynastyDetail(dynId);
+    switchView('dynasty');
+    window.scrollTo({top:0});
+    document.body.classList.add('shake');
+    setTimeout(() => document.body.classList.remove('shake'), 300);
+}
+function enterDish(dynId, dishId) {
+    fromDynasty = dynId;
+    const dish = DB[dynId].dishes.find(d => d.id === dishId);
+    document.getElementById('dish-name').innerText = dish.name;
+    document.getElementById('dish-tagline').innerText = dish.tagline;
+    document.getElementById('dish-detail').innerText = dish.detail;
+    document.getElementById('dish-story').innerText = dish.story;
+    document.getElementById('dish-img').src = dish.img;
+    document.getElementById('dish-ingredients').innerHTML = dish.ingredients.map(i => `
+    <li class="flex justify-between items-end border-b border-stone-200 pb-2">
+        <span class="text-sm font-bold text-stone-700">${i.n}</span>
+        <span class="text-xs text-stone-500 italic relative top-1">${i.q}</span>
+    </li>
+    `).join('');
+    const btn = document.getElementById('btn-cook-direct');
+    if(unlockedDishes.has(dish.name)) {
+        btn.innerHTML = "✓ 档案已收录";
+        btn.style.background = "#166534";
+        btn.classList.add("opacity-80", "cursor-not-allowed");
+    } else {
+        btn.innerHTML = "📝 收录至图鉴档案";
+        btn.style.background = "#1c1917";
+        btn.classList.remove("opacity-80", "cursor-not-allowed");
+    }
+    switchView('dish');
+    window.scrollTo({top:0});
+    gsap.to("body", { backgroundColor: '#1c1917', duration: 0.5 });
+    document.body.classList.add('shake');
+    setTimeout(() => document.body.classList.remove('shake'), 300);
+}
+function goBackToDynasty() {
+    if (fromDynasty) {
+        renderDynastyDetail(fromDynasty);
+        switchView('dynasty');
+        window.scrollTo({top:0});
+    } else {
+        goHome();
+    }
+}
+function updateCounts() {
+    document.getElementById('badge-count').innerText = unlockedDishes.size;
+    document.getElementById('achive-count-total').innerText = unlockedDishes.size;
+}
+function startCookingDish() {
+    const name = document.getElementById('dish-name').innerText;
+    if(unlockedDishes.has(name)) return;
+    unlockedDishes.add(name);
+    saveUnlocked();
+    updateCounts();
+    createFireworks();
+    const btn = document.getElementById('btn-cook-direct');
+    btn.innerHTML = "✨ 成功收录！";
+    btn.style.background = "#059669";
+    btn.classList.add('unlock-success');
+    gsap.fromTo(btn, {scale: 1}, {scale: 1.05, yoyo: true, repeat: 3, duration: 0.1});
+    setTimeout(() => {
+        btn.innerHTML = "✓ 档案已收录";
+        btn.style.background = "#166534";
+        btn.classList.add("opacity-80", "cursor-not-allowed");
+        btn.classList.remove('unlock-success');
+        showTooltip(btn, `恭喜解锁【${name}】！已加入你的文明食谱`, 3000);
+    }, 2000);
+}
+function openMiniGame() {
+    const overlay = document.getElementById('game-overlay');
+    const modal = document.getElementById('game-modal');
+    overlay.classList.remove('hidden');
+    setTimeout(() => {
+        overlay.style.opacity = '1';
+        modal.style.opacity = '1';
+        modal.style.transform = 'scale(1)';
+    }, 10);
+    const list = document.getElementById('game-challenge-list');
+    const allDishes = Object.values(DB).flatMap(d => d.dishes);
+    const challengeDishes = allDishes.sort(() => 0.5 - Math.random()).slice(0, 15);
+    list.innerHTML = challengeDishes.map(d => `
+    <div onclick="selectGameTask('${d.id}')" class="p-4 bg-white border border-stone-200 rounded-xl cursor-pointer text-sm hover:border-red-800 hover:shadow-md transition-all font-bold text-stone-700 flex justify-between items-center group">
+        <span>${d.name}</span>
+        <span class="opacity-0 group-hover:opacity-100 text-red-800 text-xs transition">接受挑战 →</span>
+    </div>
+    `).join('');
+    document.getElementById('game-ingredients').innerHTML = UNIQUE_INGS.map(i => `
+    <button onclick="addIngToPot('${i}')" class="p-3 border border-stone-200 rounded-lg text-xs font-bold text-stone-600 hover:bg-stone-800 hover:text-white hover:border-stone-800 transition-all shadow-sm active:scale-95 bg-white">
+        ${i}
+    </button>
+    `).join('');
+    showTooltip(modal, "选择左侧菜品开始烹饪挑战！", 3000);
+}
+function closeMiniGame() {
+    const overlay = document.getElementById('game-overlay');
+    const modal = document.getElementById('game-modal');
+    modal.style.opacity = '0';
+    modal.style.transform = 'scale(0.95)';
+    overlay.style.opacity = '0';
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+        resetCooking();
+    }, 300);
+}
+function selectGameTask(id) {
+    selectedChallenge = Object.values(DB).flatMap(d => d.dishes).find(d => d.id === id);
+    document.getElementById('game-task-name').innerText = `目标：重现【${selectedChallenge.name}】`;
+    document.getElementById('game-task-dynasty').innerText = `线索：${selectedChallenge.tagline}`;
+    const requiredIngs = selectedChallenge.ingredients.map(i => i.n);
+    const currentIngsHTML = document.getElementById('game-ingredients').innerHTML;
+    requiredIngs.forEach(req => {
+        if(!currentIngsHTML.includes(`>${req}<`)) {
+            document.getElementById('game-ingredients').innerHTML += `
+            <button onclick="addIngToPot('${req}')" class="p-3 border border-stone-200 rounded-lg text-xs font-bold text-stone-600 hover:bg-stone-800 hover:text-white transition-all shadow-sm active:scale-95 bg-white">
+                ${req}
+            </button>
+            `;
+        }
+    });
+    resetCooking();
+    gsap.from("#game-task-name", {x: 20, opacity: 0, duration: 0.5});
+    showTooltip(document.getElementById('game-task-name'), `需要食材：${requiredIngs.join('、')}`, 4000);
+}
+function addIngToPot(ing) {
+    if(!selectedChallenge) {
+        alert("请先从左侧选择一项烹饪任务！");
+        return;
+    }
+    if(potIngredients.includes(ing)) return;
+    potIngredients.push(ing);
+    renderPot();
+    gsap.to("#game-pot", { scale: 1.15, rotation: (Math.random()-0.5)*20, duration: 0.1, yoyo: true, repeat: 1 });
+    showTooltip(document.getElementById('game-pot'), `已加入：${ing}`, 1500);
+}
+function removeIngFromPot(index) {
+    const ing = potIngredients[index];
+    potIngredients.splice(index, 1);
+    renderPot();
+    showTooltip(document.getElementById('game-pot'), `已移除：${ing}`, 1500);
+}
+function renderPot() {
+    document.getElementById('game-selected-list').innerHTML = potIngredients.map((i, idx) => `
+    <span onclick="removeIngFromPot(${idx})" class="bg-red-800 text-white text-xs px-3 py-1.5 rounded-full shadow-md cursor-pointer hover:bg-red-950 transition flex items-center gap-1 group">
+        ${i}
+        <span class="opacity-50 group-hover:opacity-100 text-[10px]">✕</span>
+    </span>
+    `).join('');
+}
+function judgeCooking() {
+    if(!selectedChallenge) return;
+    if(potIngredients.length === 0) {
+        alert("锅里空空如也，请先放入食材。");
+        return;
+    }
+    const targets = selectedChallenge.ingredients.map(i => i.n);
+    let matchCount = 0;
+    targets.forEach(t => {
+        if(potIngredients.some(p => p.includes(t) || t.includes(p))) {
+            matchCount++;
+        }
+    });
+    const isWin = (matchCount === targets.length) && (gameDifficulty === 'easy' || potIngredients.length === targets.length);
+    if(isWin) {
+        gsap.to("#game-pot", { y: -50, scale: 1.5, rotation: 360, duration: 0.8, ease: "back.out(1.7)" });
+        setTimeout(() => {
+            alert(`✨ 绝妙！灵魂配比完全正确！\n\n【${selectedChallenge.name}】的百年秘方已成功重现！`);
+            unlockedDishes.add(selectedChallenge.name);
+            saveUnlocked();
+            updateCounts();
+            createFireworks();
+            gsap.to("#game-pot", { y: 0, scale: 1, duration: 0.3 });
+            resetCooking();
+        }, 800);
+    } else {
+        gsap.to("#game-pot", { x: [-10, 10, -10, 10, 0], duration: 0.4 });
+        setTimeout(() => {
+            alert("💥 嘭！味道不对...\n\n多一分则抢味，少一味则失魂。请查阅《食谱绝密档案》核对食材配比后再来试！");
+        }, 400);
+    }
+}
+function resetCooking() {
+    potIngredients = [];
+    renderPot();
+    showTooltip(document.getElementById('game-pot'), "食材已清空，可以重新开始！", 2000);
+}
+function showAchivement() {
+    document.getElementById('achievement-overlay').classList.remove('hidden');
+    const grid = document.getElementById('achievement-grid');
+    const allDishes = Object.values(DB).flatMap(d => d.dishes);
+    grid.innerHTML = allDishes.map(d => {
+        const isUnlocked = unlockedDishes.has(d.name);
+        return `
+        <div class="bg-white p-6 rounded-2xl text-center border border-stone-200 shadow-sm ${isUnlocked ? 'ring-2 ring-red-800' : 'opacity-40 grayscale'} transition-all duration-500 hover:scale-105 flex flex-col items-center justify-center aspect-square">
+            <div class="text-5xl mb-4 drop-shadow-md">${isUnlocked ? '🍲' : '🔒'}</div>
+            <div class="text-sm font-bold text-stone-800 mb-1">${d.name}</div>
+            <div class="text-[10px] text-stone-400">${isUnlocked ? '已永久收录' : '未解锁'}</div>
+        </div>
+        `;
+    }).join('');
+    gsap.from("#achievement-grid > div", { y: 50, opacity: 0, stagger: 0.05, duration: 0.8, ease: "back.out(1.5)" });
+    showTooltip(document.getElementById('achievement-overlay'), "已解锁的菜品会高亮显示，点击搜索框可筛选！", 4000);
+}
+function closeAchievement() {
+    document.getElementById('achievement-overlay').classList.add('hidden');
+}
+function searchDishes() {
+    const searchTerm = document.getElementById('dish-search').value.toLowerCase().trim();
+    if (!searchTerm) return;
+    const allDishes = Object.values(DB).flatMap(d => d.dishes);
+    const matched = allDishes.filter(dish =>
+        dish.name.toLowerCase().includes(searchTerm) ||
+        dish.ingredients.some(ing => ing.n.toLowerCase().includes(searchTerm)) ||
+        dish.tagline.toLowerCase().includes(searchTerm)
+    );
+    if (matched.length > 0) {
+        const firstMatch = matched[0];
+        const dynId = firstMatch.id.substring(0, 1);
+        enterDish(dynId === 't' ? 'tang' : dynId === 's' ? 'song' : dynId === 'y' ? 'yuan' : dynId === 'm' ? 'ming' : 'qing', firstMatch.id);
+        showTooltip(document.getElementById('dish-search'), `找到 ${matched.length} 个匹配菜品，已显示第一个`, 3000);
+    } else {
+        showTooltip(document.getElementById('dish-search'), "未找到匹配的菜品", 2000);
+    }
+}
+function filterDynastyDishes(dynId) {
+    const searchInput = document.querySelector(`#view-dynasty .search-input`);
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const grid = document.getElementById('dynasty-dishes-grid');
+    const dishes = DB[dynId].dishes;
+    if (!searchTerm) {
+        grid.innerHTML = dishes.map(dish => `
+        <div class="recipe-card parchment p-6 rounded-2xl cursor-pointer hover:scale-105 transition-all duration-300 border border-transparent hover:border-stone-300 shadow-md hover:shadow-xl relative overflow-hidden group" onclick="enterDish('${dynId}', '${dish.id}')">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="text-[10px] text-stone-400 mb-3 tracking-widest border-b border-stone-200 pb-2">#${dish.tagline}</div>
+            <div class="font-bold text-stone-800 text-lg relative z-10 group-hover:text-${DB[dynId].color} transition-colors">${dish.name}</div>
+            <div class="mt-2 text-xs text-stone-500">
+                食材：${dish.ingredients.map(i => i.n).join('、')}
+            </div>
+        </div>
+        `).join('');
+        return;
+    }
+    const filtered = dishes.filter(dish =>
+        dish.name.toLowerCase().includes(searchTerm) ||
+        dish.ingredients.some(ing => ing.n.toLowerCase().includes(searchTerm)) ||
+        dish.tagline.toLowerCase().includes(searchTerm)
+    );
+    grid.innerHTML = filtered.map(dish => `
+    <div class="recipe-card parchment p-6 rounded-2xl cursor-pointer hover:scale-105 transition-all duration-300 border border-transparent hover:border-stone-300 shadow-md hover:shadow-xl relative overflow-hidden group" onclick="enterDish('${dynId}', '${dish.id}')">
+        <div class="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="text-[10px] text-stone-400 mb-3 tracking-widest border-b border-stone-200 pb-2">#${dish.tagline}</div>
+        <div class="font-bold text-stone-800 text-lg relative z-10 group-hover:text-${DB[dynId].color} transition-colors">${dish.name}</div>
+        <div class="mt-2 text-xs text-stone-500">
+            食材：${dish.ingredients.map(i => i.n).join('、')}
+        </div>
+    </div>
+    `).join('');
+    showTooltip(searchInput, `找到 ${filtered.length} 个匹配菜品`, 2000);
+}
+function filterAchievements() {
+    const searchTerm = document.getElementById('achievement-search').value.toLowerCase().trim();
+    const grid = document.getElementById('achievement-grid');
+    const allDishes = Object.values(DB).flatMap(d => d.dishes);
+    if (!searchTerm) {
+        grid.innerHTML = allDishes.map(d => {
+            const isUnlocked = unlockedDishes.has(d.name);
+            return `
+            <div class="bg-white p-6 rounded-2xl text-center border border-stone-200 shadow-sm ${isUnlocked ? 'ring-2 ring-red-800' : 'opacity-40 grayscale'} transition-all duration-500 hover:scale-105 flex flex-col items-center justify-center aspect-square">
+                <div class="text-5xl mb-4 drop-shadow-md">${isUnlocked ? '🍲' : '🔒'}</div>
+                <div class="text-sm font-bold text-stone-800 mb-1">${d.name}</div>
+                <div class="text-[10px] text-stone-400">${isUnlocked ? '已永久收录' : '未解锁'}</div>
+            </div>
+            `;
+        }).join('');
+        return;
+    }
+    const filtered = allDishes.filter(dish => dish.name.toLowerCase().includes(searchTerm) && unlockedDishes.has(dish.name));
+    grid.innerHTML = filtered.map(d => {
+        const isUnlocked = unlockedDishes.has(d.name);
+        return `
+        <div class="bg-white p-6 rounded-2xl text-center border border-stone-200 shadow-sm ${isUnlocked ? 'ring-2 ring-red-800' : 'opacity-40 grayscale'} transition-all duration-500 hover:scale-105 flex flex-col items-center justify-center aspect-square">
+            <div class="text-5xl mb-4 drop-shadow-md">${isUnlocked ? '🍲' : '🔒'}</div>
+            <div class="text-sm font-bold text-stone-800 mb-1">${d.name}</div>
+            <div class="text-[10px] text-stone-400">${isUnlocked ? '已永久收录' : '未解锁'}</div>
+        </div>
+        `;
+    }).join('');
+    showTooltip(document.getElementById('achievement-search'), `找到 ${filtered.length} 个已解锁的匹配菜品`, 2000);
+}
+function showTooltip(element, text, duration = 2000) {
+    const tooltip = document.getElementById('tooltip');
+    tooltip.textContent = text;
+    const rect = element.getBoundingClientRect();
+    tooltip.style.left = (rect.left + rect.width/2 - tooltip.offsetWidth/2) + 'px';
+    tooltip.style.top = (rect.bottom + 10) + 'px';
+    tooltip.style.opacity = '1';
+    setTimeout(() => { tooltip.style.opacity = '0'; }, duration);
+}
+function showWeekPage() {
+    switchView('week');
+    initWeekPage();
+}
+function showOldPage() {
+    switchView('old');
+}
+function initWeekPage() {
+    const likeBtns = document.querySelectorAll('.like-btn-week');
+    likeBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            this.classList.toggle('active');
+            const heart = document.createElement('div');
+            heart.innerHTML = '❤️';
+            heart.className = 'heart';
+            heart.style.left = e.clientX - 10 + 'px';
+            heart.style.top = e.clientY - 10 + 'px';
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 1000);
+        });
+    });
+    const knowBtns = document.querySelectorAll('.know-btn-week');
+    const modal = document.getElementById('dishModal-week');
+    const modalImg = document.getElementById('modalImg-week');
+    const modalName = document.getElementById('modalName-week');
+    const modalDesc = document.getElementById('modalDesc-week');
+    const closeModal = document.querySelector('.close-modal-week');
+    const dishStory = {
+        "东坡肉": "北宋苏轼被贬黄州时，亲自下厨研发，慢火炖制的红烧肉，不仅美味，还留下“慢着火，少着水，火候足时它自美”的千古名句。",
+        "佛跳墙": "清代福建聚春园名菜，用鲍鱼、海参、鱼翅等数十种食材煨制一坛，香气浓郁，连吃素的和尚都忍不住翻墙来吃，故名佛跳墙。",
+        "贵妃鸡": "以杨贵妃醉酒为灵感创制，鸡肉炖煮后鲜嫩多汁，是唐代宫廷专为贵妃打造的御膳，寓意富贵吉祥。",
+        "叫花鸡": "明代江南乞丐发明的吃法，用黄泥包裹鸡身烤制，意外解锁极致美味，后成为江南名菜，连乾隆皇帝都微服品尝过。",
+        "宫保鸡丁": "清代四川总督丁宝桢（官衔太子少保，尊称宫保）喜爱的家常菜，鲜辣嫩滑，后流传全国，成为中式经典名菜。",
+        "松鼠鳜鱼": "清代乾隆下江南时品尝，鱼身炸后形似松鼠，酸甜酥脆，乾隆赞不绝口，从此成为江南宴席头菜。"
+    };
+    knowBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const card = this.closest('.dish-card-week');
+            const name = card.querySelector('.dish-name-week').textContent.replace(/[^\u4e00-\u9fa5]/g, '');
+            const img = card.querySelector('.dish-img-week').src;
+            modalImg.src = img;
+            modalName.textContent = name;
+            modalDesc.textContent = dishStory[name];
+            modal.style.display = 'flex';
+        });
+    });
+    closeModal.addEventListener('click', () => modal.style.display = 'none');
+    window.addEventListener('click', (e) => {
+        if(e.target === modal) modal.style.display = 'none';
+    });
+}
+function trigger404() {
+    document.getElementById('home-page-old').style.display = 'none';
+    document.getElementById('error-page').style.display = 'flex';
+    window.scrollTo(0, 0);
+}
+function showHome() {
+    document.getElementById('error-page').style.display = 'none';
+    document.getElementById('home-page-old').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape') {
+        closeMiniGame();
+        closeAchievement();
+    } else if(e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        showAchivement();
+    } else if(e.key === 'g' || e.key === 'G') {
+        e.preventDefault();
+        openMiniGame();
+    } else if(e.key === 'ArrowUp') {
+        e.preventDefault();
+        scrollToTop();
+    } else if(e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goHome();
+    }
+});
+window.onload = () => {
+    loadUnlocked();
+    gsap.to('.loader-text', {opacity:1, y:-10, duration:1, repeat:-1, yoyo:true});
+    setTimeout(()=>{
+        gsap.to('#loading-screen', {opacity:0, duration:1});
+        setTimeout(()=>document.getElementById('loading-screen').remove(),1000);
+    }, 2000);
+    createParticles();
+    renderHome();
+    switchView('home');
+    restoreScrollPosition();
+    window.addEventListener('scroll', updateScrollProgress);
+    document.addEventListener('mousemove', createMouseParticles);
+    updateScrollProgress();
+};
+</script>
+</body>
+</html>
